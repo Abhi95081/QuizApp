@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.quizapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.quizapp"
@@ -66,4 +66,12 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
+    //view model
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+
+    implementation( "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
 }
