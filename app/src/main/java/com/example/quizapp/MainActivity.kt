@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,15 +54,12 @@ fun AppNavigator() {
     when {
         showSplash -> SplashScreen()
         !isLoggedIn -> LoginScreen { isLoggedIn = true }
-        restartQuiz -> {
+        restartQuiz || quizViewModel == null -> {
             restartQuiz = false
             quizViewModel = QuizViewModel()
             QuizScreen(quizViewModel!!, onRetry = { restartQuiz = true })
         }
-        else -> {
-            if (quizViewModel == null) quizViewModel = QuizViewModel()
-            QuizScreen(quizViewModel!!, onRetry = { restartQuiz = true })
-        }
+        else -> QuizScreen(quizViewModel!!, onRetry = { restartQuiz = true })
     }
 }
 
@@ -118,19 +114,18 @@ fun QuizScreen(viewModel: QuizViewModel, onRetry: () -> Unit = {}) {
     } else {
         val question = viewModel.currentQuestion
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (question != null) {
+            question?.let {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = question.text, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(text = it.text, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-
-                question.options.forEachIndexed { index, answer ->
+                it.options.forEachIndexed { index, answer ->
                     Button(
                         onClick = { viewModel.answerQuestion(index) },
                         modifier = Modifier.fillMaxWidth().padding(4.dp),
@@ -155,7 +150,6 @@ class QuizViewModel : ViewModel() {
         Question("What is the square root of 16?", listOf("2", "3", "4", "5"), 2)
     )
     private var currentQuestionIndex by mutableIntStateOf(0)
-        private set
     var score by mutableIntStateOf(0)
         private set
     var isQuizFinished by mutableStateOf(false)
@@ -165,8 +159,10 @@ class QuizViewModel : ViewModel() {
         get() = _questions.getOrNull(currentQuestionIndex)
 
     fun answerQuestion(selectedIndex: Int) {
-        if (currentQuestion != null && selectedIndex == currentQuestion!!.correctAnswer) {
-            score++
+        currentQuestion?.let { question ->
+            if (selectedIndex == question.correctAnswer) {
+                score++
+            }
         }
         if (currentQuestionIndex < _questions.size - 1) {
             currentQuestionIndex++
@@ -185,20 +181,10 @@ fun ScoreScreen(score: Int, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Card(
-            modifier = Modifier.padding(16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-        ) {
-            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Quiz Completed!", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "Your Score: $score", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
-            }
-        }
+        Text(text = "Quiz Completed!", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-            Text(text = "Retry", color = Color.White)
-        }
+        Text(text = "Your Score: $score", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) { Text(text = "Retry") }
     }
 }
