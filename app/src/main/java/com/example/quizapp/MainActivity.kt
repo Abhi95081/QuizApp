@@ -72,6 +72,7 @@ fun SplashScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
     var email by remember { mutableStateOf(TextFieldValue()) }
@@ -88,7 +89,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
             label = { Text("Email") },
-            colors = TextFieldDefaults.colors(focusedContainerColor = Color.White)
+            colors = TextFieldDefaults.textFieldColors(containerColor = Color.White)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
@@ -114,7 +115,7 @@ fun QuizScreen(viewModel: QuizViewModel, onRetry: () -> Unit, onExit: () -> Unit
         if (viewModel.isQuizFinished) {
             ScoreScreen(viewModel.score, onRetry)
         } else {
-            val question = viewModel.currentQuestion
+            val question = viewModel.getCurrentQuestion()
             question?.let {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -145,16 +146,45 @@ fun QuizScreen(viewModel: QuizViewModel, onRetry: () -> Unit, onExit: () -> Unit
 @Composable
 fun ScoreScreen(score: Int, onRetry: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp).background(Color.Yellow),
+        modifier = Modifier.fillMaxSize().padding(16.dp).background(Brush.verticalGradient(colors = listOf(Color.Cyan, Color.Blue))),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Quiz Completed!", style = MaterialTheme.typography.headlineMedium, color = Color.Black)
+        Text(text = "Quiz Completed!", style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Your Score: $score", style = MaterialTheme.typography.headlineLarge, color = Color.Red)
+        Text(text = "Your Score: $score", style = MaterialTheme.typography.headlineLarge, color = Color.Yellow)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(containerColor = Color.Green)) {
+        Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta)) {
             Text(text = "Retry", color = Color.White)
         }
     }
 }
+
+class QuizViewModel : ViewModel() {
+    private val questions = listOf(
+        Question("What is the capital of India?", listOf("Patna", "Delhi", "UP", "Bihar"), 1),
+        Question("What is 2 + 2?", listOf("3", "4", "5", "6"), 1)
+    )
+    private var currentQuestionIndex by mutableStateOf(0)
+    var score by mutableStateOf(0)
+        private set
+    var isQuizFinished by mutableStateOf(false)
+        private set
+
+    fun getCurrentQuestion(): Question? = questions.getOrNull(currentQuestionIndex)
+
+    fun answerQuestion(selectedIndex: Int) {
+        getCurrentQuestion()?.let { question ->
+            if (selectedIndex == question.correctAnswer) {
+                score++
+            }
+        }
+        if (currentQuestionIndex < questions.size - 1) {
+            currentQuestionIndex++
+        } else {
+            isQuizFinished = true
+        }
+    }
+}
+
+data class Question(val text: String, val options: List<String>, val correctAnswer: Int)
