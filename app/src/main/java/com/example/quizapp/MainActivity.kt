@@ -35,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+
 /*
  * Supabase RLS Policy to be applied in Supabase SQL Editor:
   CREATE POLICY "Allow public inserts for quiz scores"
@@ -79,6 +80,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigator() {
+
     var showSplash by remember { mutableStateOf(true) }
     var userUid by remember { mutableStateOf<String?>(null) }
     var restartQuiz by remember { mutableStateOf(false) }
@@ -122,6 +124,18 @@ fun SplashScreen() {
 @Composable
 fun LoginScreen(onLoginSuccess: (String) -> Unit) {
     var uid by remember { mutableStateOf(TextFieldValue()) }
+    var isLoading by remember { mutableStateOf(false) }
+    var triggerLogin by remember { mutableStateOf(false) }
+
+    // Trigger login after 4 seconds when the button is clicked
+    LaunchedEffect(triggerLogin) {
+        if (triggerLogin) {
+            delay(4000)
+            isLoading = false
+            onLoginSuccess(uid.text)
+            triggerLogin = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -156,12 +170,21 @@ fun LoginScreen(onLoginSuccess: (String) -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { if (uid.text.isNotEmpty()) onLoginSuccess(uid.text) },
+                    onClick = {
+                        if (uid.text.isNotEmpty() && !isLoading) {
+                            isLoading = true
+                            triggerLogin = true
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(8.dp, shape = RoundedCornerShape(50))
                 ) {
-                    Text(text = "Login")
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text(text = "Login")
+                    }
                 }
             }
         }
