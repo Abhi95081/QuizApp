@@ -6,7 +6,7 @@ A simple and smart Quiz Application built with **Jetpack Compose** and powered b
 
 ## 📱 Features
 
-- 🔐 Login with UID
+- 🔐 Login with UID(Stores in the Supabase)
 - ❓ Multiple Choice Quiz Interface
 - 📊 Real-time Score Submission
 - 🧾 View Previous Scores (Optional)
