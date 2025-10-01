@@ -326,7 +326,7 @@ class QuizViewModel(private val uid: String) : ViewModel() {
         Question("Which is the smallest planet?", listOf("Mars", "Mercury", "Venus", "Pluto"), 1)
     )
 
-    var currentQuestionIndex by mutableIntStateOf(0)
+    private var currentQuestionIndex by mutableIntStateOf(0)
         private set
     var score by mutableIntStateOf(0)
         private set
